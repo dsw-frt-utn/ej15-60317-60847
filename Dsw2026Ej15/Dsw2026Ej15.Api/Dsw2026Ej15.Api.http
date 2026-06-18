@@ -1,0 +1,11 @@
+@Dsw2026Ej15.Api_HostAddress = http://localhost:5231
+
+### Prueba para crear un médico
+POST {{Dsw2026Ej15.Api_HostAddress}}/api/doctors
+Content-Type: application/json
+
+{
+  "name": "Dr. René Favaloro",
+  "licenceNumber": "MP-456789",
+  "specialityId": "c7e8d4b2-5f91-4a37-b8d4-9e2c6f1a7b53"
+}
