@@ -1,0 +1,22 @@
+@Dsw2026Ej15.Api_HostAddress = http://localhost:5231
+
+### 1. Crear el médico 
+POST {{Dsw2026Ej15.Api_HostAddress}}/api/doctors
+Content-Type: application/json
+
+{
+  "name": "Dr. René Favaloro",
+  "licenceNumber": "MP-456789",
+  "specialityId": "9d4f1a7b-2c85-4e31-b6d7-5a8c3f2e9b86"
+}
+
+### 2. Ver la lista completa 
+GET {{Dsw2026Ej15.Api_HostAddress}}/api/doctors
+
+
+### 3. Ver el médico específico 
+GET {{Dsw2026Ej15.Api_HostAddress}}/api/doctors/6b9c34e9-7fca-4921-a346-88c8aea0c0a5
+
+
+### 4. Dar de baja al médico 
+DELETE {{Dsw2026Ej15.Api_HostAddress}}/api/doctors/6b9c34e9-7fca-4921-a346-88c8aea0c0a5
