@@ -1,11 +1,10 @@
+using Dsw2026Ej15.Domain.Interfaces;
+using Dsw2026Ej15.Data;
+using Dsw2026Ej15.Api.Middlewares;
 
-using Dsw2026Ej15.Api.middlewares;
-using Dsw2026Ej15.Domain.Interfaces;
-using Dsw2026Ej15.Domain.Interfaces;
-using Dsw2026Ej15.Data.Sources;
 namespace Dsw2026Ej15.Api
 {
-    public class Program //mia
+    public class Program 
     {
         public static void Main(string[] args)
         {
@@ -14,8 +13,8 @@ namespace Dsw2026Ej15.Api
             // Add services to the container.
 
             builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
+            builder.Services.AddHealthChecks();
+            builder.Services.AddSwaggerGen();
             builder.Services.AddSingleton<IPersistence, PersistenceInMemory>();
 
             var app = builder.Build();
@@ -23,13 +22,12 @@ namespace Dsw2026Ej15.Api
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
-                app.MapOpenApi();
+                app.UseSwagger();
+                app.UseSwaggerUI();
             }
             app.UseMiddleware<ExceptionMiddleware>();
-            app.UseHttpsRedirection();
-
+            app.MapHealthChecks("/health-check"); 
             app.UseAuthorization();
-
 
             app.MapControllers();
 

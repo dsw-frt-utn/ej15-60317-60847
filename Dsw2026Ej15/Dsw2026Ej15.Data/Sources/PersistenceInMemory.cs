@@ -1,44 +1,76 @@
 ﻿using Dsw2026Ej15.Data.Dtos;
 using Dsw2026Ej15.Domain.Entities;
 using Dsw2026Ej15.Domain.Interfaces;
-using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
 using System.Text.Json;
 
-namespace Dsw2026Ej15.Data.Sources
+namespace Dsw2026Ej15.Data;
+
+public class PersistenceInMemory : IPersistence
 {
-    public class PersistenceInMemory : IPersistence
+    private List<Speciality> _specialities = new();
+    private readonly List<Doctor> _doctors = new();
+
+    public PersistenceInMemory()
     {
-        public List<Doctor> doctors { get; set; } = new List<Doctor>();
-        public List<Speciality> specialities { get; set; } = new List<Speciality>();
+        LoadSpecialities();
+    }
 
-        public PersistenceInMemory() 
+    private void LoadSpecialities()
+    {
+        try
         {
-            LoadSpecialities();
-        }
+            string jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Sources", "specialities.json");
+            var json = File.ReadAllText(jsonPath);
+            var specialities = JsonSerializer.Deserialize<List<SpecialityDto>>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? [];
 
-        public Speciality? GetSpecialityById(Guid id)
-        {
-            return specialities.SingleOrDefault(e => e.Id == id);
-        }
-        private void LoadSpecialities()
-        {
-            try
+            _specialities = specialities.Select(s => new Speciality
             {
-                string jsonPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Sources", "specialities.json");
-                var json = File.ReadAllText(jsonPath);
-                var specialitiesDto = JsonSerializer.Deserialize<List<SpecialityDto>>(json, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                }) ?? [];
-                specialities = [.. specialitiesDto.Select(s => new Speciality(s.Name, s.Description, s.Id))];
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Ocurrió un error al cargar el archivo JSON: {ex.Message}");
-            }
+                Id = s.Id,
+                Name = s.Name,
+                Description = s.Description
+            }).ToList();
         }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando especialidades: {ex.Message}");
         }
     }
+
+    public Speciality? GetSpecialityById(Guid id)
+    {
+        return _specialities.SingleOrDefault(e => e.Id == id);
+    }
+    public IEnumerable<Speciality> GetSpecialities()
+    {
+        return _specialities;
+    }
+
+    public List<Doctor> GetAllActiveDoctors()
+    {
+        return _doctors.Where(d => d.IsActive).ToList();
+    }
+    public IEnumerable<Doctor> GetDoctors()
+    {
+        return _doctors;
+    }
+
+    public Doctor? GetDoctorById(Guid id)
+    {
+        return _doctors.FirstOrDefault(d => d.Id == id && d.IsActive);
+    }
+
+    public void AddDoctor(Doctor doctor)
+    {
+        _doctors.Add(doctor);
+    }
+
+    public void DeleteDoctor(Guid id)
+    {
+        var doctorInDb = _doctors.FirstOrDefault(d => d.Id == id);
+
+        if (doctorInDb != null)
+        {
+            doctorInDb.IsActive = false;
+        }
+    }
+}

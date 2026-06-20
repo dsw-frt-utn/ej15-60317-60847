@@ -2,6 +2,6 @@
 {
     public class DoctorModel
     {
-        public record Request(string Name, string LicenceNumber, Guid SpecialityId);
+        public record Request(string name, string LicenseNumber, Guid SpecialityId);
     }
 }
