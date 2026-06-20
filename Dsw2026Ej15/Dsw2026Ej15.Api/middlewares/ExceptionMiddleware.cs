@@ -1,33 +1,42 @@
-﻿using Microsoft.AspNetCore.Razor.Hosting;
-using Dsw2026Ej15.Domain.Exceptions;
+﻿using Dsw2026Ej15.Domain.Exceptions;
+using System.Net;
+using System.Text.Json;
 
-namespace Dsw2026Ej15.Api.middlewares
+namespace Dsw2026Ej15.Api.Middlewares;
+
+public class ExceptionMiddleware    
 {
-    public class ExceptionMiddleware
+    private readonly RequestDelegate _next;
+
+    public ExceptionMiddleware(RequestDelegate next)
     {
-        private readonly RequestDelegate _next;
+        _next = next;
+    }
 
-        public ExceptionMiddleware(RequestDelegate next)
+    public async Task InvokeAsync(HttpContext context)
+    {
+        try
         {
-            _next = next;
+            await _next(context);
         }
-
-        public async Task InvokeAsync (HttpContext context)
+        catch (Exception ex)
         {
-            try
-            {
-                await _next(context);
-            }
-            catch (ValidationException ex)
-            {
-                context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                await context.Response.WriteAsync(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                await context.Response.WriteAsync(ex.Message);
-            }
+            await HandleExceptionAsync(context, ex);
         }
     }
+    private async Task HandleExceptionAsync(HttpContext context, Exception ex)
+    {
+        HttpStatusCode status = HttpStatusCode.InternalServerError;
+        string message = "Ocurrio un error inesperado al ejecutar la solicitud";
+        if (ex is ValidationException ve)
+        {
+            status = HttpStatusCode.BadRequest;
+            message = ve.Message;
+        }
+        var result = JsonSerializer.Serialize(new { error = message });
+        context.Response.ContentType = "application/json";
+        context.Response.StatusCode = (int)status;
+        await context.Response.WriteAsync(result);
+    }
+
 }
